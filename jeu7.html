@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>🃏 Blackjack Casino</title>
+
+<style>
+body{
+  margin:0;
+  background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+
+/* 🔙 bouton retour */
+.backBtn{
+  position:absolute;
+  top:10px;
+  left:10px;
+  padding:10px 15px;
+  border:none;
+  border-radius:10px;
+  background:#3498db;
+  color:white;
+  cursor:pointer;
+  font-size:16px;
+}
+
+.hand{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin:15px;
+}
+
+.card{
+  width:60px;
+  height:90px;
+  background:white;
+  color:black;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.red{ color:red; }
+
+button{
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+#betBox{
+  margin-top:10px;
+}
+
+input{
+  padding:8px;
+  border-radius:8px;
+  border:none;
+  width:80px;
+  text-align:center;
+}
+
+#message{
+  font-size:20px;
+  height:30px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🔙 bouton retour -->
+<button class="backBtn" onclick="goBack()">🏠 Retour</button>
+
+<h1>🃏 Blackjack Casino</h1>
+
+<div id="money">💰 Argent : 1000</div>
+
+<div id="betBox">
+  💸 Mise :
+  <input type="number" id="betInput" value="100">
+  <button onclick="placeBet()">Jouer</button>
+</div>
+
+<h2>🤖 Croupier (<span id="dealerScore">?</span>)</h2>
+<div id="dealer" class="hand"></div>
+
+<h2>🧑 Toi (<span id="playerScore">0</span>)</h2>
+<div id="player" class="hand"></div>
+
+<div>
+  <button onclick="hit()">Tirer</button>
+  <button onclick="stand()">Rester</button>
+</div>
+
+<div id="message"></div>
+
+<script>
+function goBack(){
+  window.location.href = "selection.html";
+}
+
+let deck=[];
+let player=[];
+let dealer=[];
+let money=1000;
+let bet=0;
+let gameStarted=false;
+
+function createDeck(){
+  let suits=["♠","♥","♦","♣"];
+  let values=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+  deck=[];
+  for(let s of suits){
+    for(let v of values){
+      deck.push({suit:s,value:v});
+    }
+  }
+}
+
+function shuffle(){ deck.sort(()=>Math.random()-0.5); }
+
+function draw(hand){ hand.push(deck.pop()); }
+
+function getScore(hand){
+  let score=0, aces=0;
+  hand.forEach(c=>{
+    if(c.value==="A"){ score+=11; aces++; }
+    else if(["J","Q","K"].includes(c.value)) score+=10;
+    else score+=parseInt(c.value);
+  });
+  while(score>21 && aces>0){
+    score-=10; aces--;
+  }
+  return score;
+}
+
+function render(){
+  let p=document.getElementById("player");
+  let d=document.getElementById("dealer");
+
+  p.innerHTML="";
+  d.innerHTML="";
+
+  player.forEach(c=>{
+    let div=document.createElement("div");
+    div.className="card "+(c.suit==="♥"||c.suit==="♦"?"red":"");
+    div.textContent=c.value+c.suit;
+    p.appendChild(div);
+  });
+
+  dealer.forEach((c,i)=>{
+    let div=document.createElement("div");
+
+    if(i===0 && gameStarted){
+      div.className="card";
+      div.textContent="❓";
+    }else{
+      div.className="card "+(c.suit==="♥"||c.suit==="♦"?"red":"");
+      div.textContent=c.value+c.suit;
+    }
+
+    d.appendChild(div);
+  });
+
+  document.getElementById("playerScore").textContent=getScore(player);
+  document.getElementById("dealerScore").textContent = gameStarted ? "?" : getScore(dealer);
+  document.getElementById("money").textContent="💰 Argent : "+money;
+}
+
+function setMessage(msg){
+  document.getElementById("message").textContent=msg;
+}
+
+function placeBet(){
+  let value=parseInt(document.getElementById("betInput").value);
+
+  if(value>money){
+    setMessage("❌ Pas assez d'argent !");
+    return;
+  }
+
+  if(value<=0){
+    setMessage("❌ Mise invalide");
+    return;
+  }
+
+  bet=value;
+  money-=bet;
+
+  startGame();
+}
+
+function startGame(){
+  createDeck();
+  shuffle();
+
+  player=[];
+  dealer=[];
+  gameStarted=true;
+
+  draw(player);
+  draw(player);
+  draw(dealer);
+  draw(dealer);
+
+  setMessage("🎮 Partie en cours...");
+  render();
+}
+
+function hit(){
+  if(!gameStarted) return;
+
+  draw(player);
+
+  if(getScore(player)>21){
+    endGame("💥 Tu as perdu !");
+  }
+
+  render();
+}
+
+function stand(){
+  if(!gameStarted) return;
+
+  while(getScore(dealer)<17){
+    draw(dealer);
+  }
+
+  let p=getScore(player);
+  let d=getScore(dealer);
+
+  if(d>21 || p>d){
+    endGame("🎉 Tu gagnes !");
+  }else if(p===d){
+    endGame("🤝 Égalité !");
+  }else{
+    endGame("😢 Tu perds !");
+  }
+
+  render();
+}
+
+function endGame(msg){
+  gameStarted=false;
+
+  if(msg.includes("gagnes")){
+    money += bet*2;
+  }
+
+  if(msg.includes("Égalité")){
+    money += bet;
+  }
+
+  bet=0;
+
+  setMessage(msg);
+  render();
+}
+</script>
+
+</body>
+</html>

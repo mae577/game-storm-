@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dodge Game</title>
+
+<style>
+body{
+  margin:0;
+  background:black;
+  color:white;
+  font-family:Arial;
+}
+
+#scoreUI{
+  position:absolute;
+  top:10px;
+  left:10px;
+  font-size:20px;
+}
+
+#backBtn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  padding:8px 15px;
+  background:#00ffff;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+canvas{
+  display:block;
+  margin:auto;
+  background:#222;
+}
+
+#gameOverMenu{
+  display:none;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#111;
+  padding:30px;
+  border-radius:15px;
+  box-shadow:0 0 20px #00ffff;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="scoreUI">Score : 0</div>
+<button id="backBtn" onclick="window.location.href='selection.html'">⬅ Retour</button>
+
+<canvas id="game" width="400" height="600"></canvas>
+
+<div id="gameOverMenu">
+  <h2>💀 GAME OVER</h2>
+  <p>Score : <span id="finalScore">0</span></p>
+  <p>Record : <span id="finalRecord">0</span></p>
+  <button onclick="startGame()">🔁 Rejouer</button>
+  <br><br>
+  <button onclick="window.location.href='selection.html'">🏠 Accueil</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+/* 🚗 IMAGE JOUEUR */
+let carImg = new Image();
+let carLoaded = false;
+carImg.src = "mini_voiture.png";
+
+carImg.onload = () => carLoaded = true;
+
+/* 🚧 IMAGE OBSTACLE */
+let obstacleImg = new Image();
+let obstacleLoaded = false;
+obstacleImg.src = "barrieres-droites-extensibles-3-6m-p-130300-800x800 (1).png";
+
+obstacleImg.onload = () => obstacleLoaded = true;
+
+/* VARIABLES */
+let player, obstacles, trees, score, gameRunning;
+let record = localStorage.getItem("dodgeRecord") || 0;
+
+/* START */
+function startGame(){
+  document.getElementById("gameOverMenu").style.display="none";
+
+  player = {x:170,y:500,w:60,h:80,speed:6};
+  obstacles = [];
+  trees = [];
+  score = 0;
+  gameRunning = true;
+
+  document.getElementById("scoreUI").innerText="Score : 0";
+
+  loop();
+}
+
+/* CONTROLES */
+let keys={};
+window.addEventListener("keydown",e=>keys[e.key]=true);
+window.addEventListener("keyup",e=>keys[e.key]=false);
+
+function movePlayer(){
+  if((keys["q"]||keys["Q"]) && player.x>80){
+    player.x -= player.speed;
+  }
+  if((keys["d"]||keys["D"]) && player.x+player.w<320){
+    player.x += player.speed;
+  }
+}
+
+/* 🚗 DESSIN JOUEUR */
+function drawPlayer(){
+  if(carLoaded){
+    ctx.drawImage(carImg, player.x, player.y, player.w, player.h);
+  }
+}
+
+/* 🚧 OBSTACLES */
+function createObstacle(){
+  obstacles.push({
+    x:Math.random()*180+90,
+    y:-60,
+    w:80,
+    h:40,
+    speed:4 + Math.random()*2
+  });
+}
+
+/* 🌳 ARBRES */
+function createTree(){
+  trees.push({
+    x: Math.random()<0.5 ? 20 : 360,
+    y:-20,
+    size:20,
+    speed:4
+  });
+}
+
+/* COLLISION */
+function collision(a,b){
+  return a.x < b.x+b.w &&
+         a.x+a.w > b.x &&
+         a.y < b.y+b.h &&
+         a.y+a.h > b.y;
+}
+
+/* LOOP */
+function loop(){
+  if(!gameRunning) return;
+
+  ctx.fillStyle="#222";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  /* ROUTE */
+  ctx.fillStyle="white";
+  for(let i=0;i<canvas.height;i+=40){
+    ctx.fillRect(195,i,10,20);
+  }
+
+  movePlayer();
+
+  /* arbres */
+  if(Math.random()<0.05){
+    createTree();
+  }
+
+  trees.forEach((t,i)=>{
+    t.y += t.speed;
+
+    ctx.fillStyle="green";
+    ctx.beginPath();
+    ctx.arc(t.x,t.y,10,0,Math.PI*2);
+    ctx.fill();
+
+    if(t.y > canvas.height) trees.splice(i,1);
+  });
+
+  /* obstacles */
+  if(Math.random()<0.03){
+    createObstacle();
+  }
+
+  obstacles.forEach((o,i)=>{
+    o.y += o.speed;
+
+    if(obstacleLoaded){
+      ctx.drawImage(obstacleImg, o.x, o.y, o.w, o.h);
+    }else{
+      ctx.fillStyle="red";
+      ctx.fillRect(o.x,o.y,o.w,o.h);
+    }
+
+    if(collision(player,o)){
+      gameOver();
+    }
+
+    if(o.y>canvas.height){
+      obstacles.splice(i,1);
+      score++;
+      document.getElementById("scoreUI").innerText="Score : "+score;
+    }
+  });
+
+  /* joueur */
+  drawPlayer();
+
+  requestAnimationFrame(loop);
+}
+
+/* GAME OVER */
+function gameOver(){
+  gameRunning=false;
+
+  document.getElementById("gameOverMenu").style.display="block";
+
+  document.getElementById("finalScore").innerText = score;
+
+  if(score > record){
+    record = score;
+    localStorage.setItem("dodgeRecord", record);
+  }
+
+  document.getElementById("finalRecord").innerText = record;
+}
+
+/* START */
+startGame();
+</script>
+
+</body>
+</html>

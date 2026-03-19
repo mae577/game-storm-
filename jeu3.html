@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Chifoumi Galaxy</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+    background: black;
+}
+
+/* canvas fond */
+#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+/* bouton retour */
+.back {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 15px;
+    background: white;
+    color: black;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+/* mains */
+.hands {
+    font-size: 80px;
+    margin-top: 80px;
+}
+
+.shake {
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(20deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-20deg); }
+}
+
+/* boutons */
+button {
+    padding: 12px 20px;
+    margin: 10px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* résultat */
+#result {
+    font-size: 28px;
+    margin-top: 20px;
+}
+
+/* victoire */
+.win {
+    animation: winFlash 0.4s alternate 5;
+}
+
+@keyframes winFlash {
+    from { background: rgba(0,255,0,0.1); }
+    to { background: rgba(0,255,0,0.4); }
+}
+
+/* défaite */
+.lose {
+    animation: loseFlash 0.4s alternate 5;
+}
+
+@keyframes loseFlash {
+    from { background: rgba(255,0,0,0.1); }
+    to { background: rgba(255,0,0,0.4); }
+}
+
+/* confettis */
+.confetti {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    animation: fall 2s linear forwards;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<a href="selection.html" class="back">⬅ Retour</a>
+
+<h1>🌌 Chifoumi Galaxy</h1>
+
+<div class="hands">
+    <span id="mainJoueur">✊</span>
+    VS
+    <span id="mainOrdi">✊</span>
+</div>
+
+<div>
+    <button onclick="jouer('pierre')">Pierre</button>
+    <button onclick="jouer('feuille')">Feuille</button>
+    <button onclick="jouer('ciseaux')">Ciseaux</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+/* 🎮 jeu */
+const emojis = {
+    pierre: "✊",
+    feuille: "✋",
+    ciseaux: "✌️"
+};
+
+function jouer(joueur) {
+    const choix = ["pierre", "feuille", "ciseaux"];
+    const mainJoueur = document.getElementById("mainJoueur");
+    const mainOrdi = document.getElementById("mainOrdi");
+    const body = document.body;
+
+    mainJoueur.classList.add("shake");
+    mainOrdi.classList.add("shake");
+
+    setTimeout(() => {
+        const ordi = choix[Math.floor(Math.random() * 3)];
+
+        mainJoueur.classList.remove("shake");
+        mainOrdi.classList.remove("shake");
+
+        mainJoueur.textContent = emojis[joueur];
+        mainOrdi.textContent = emojis[ordi];
+
+        let resultat = "";
+
+        if (joueur === ordi) {
+            resultat = "Égalité 😐";
+        } else if (
+            (joueur === "pierre" && ordi === "ciseaux") ||
+            (joueur === "feuille" && ordi === "pierre") ||
+            (joueur === "ciseaux" && ordi === "feuille")
+        ) {
+            resultat = "Tu gagnes 🎉";
+            body.classList.add("win");
+            confetti();
+        } else {
+            resultat = "Tu perds 😢";
+            body.classList.add("lose");
+        }
+
+        document.getElementById("result").textContent = resultat;
+
+        setTimeout(() => {
+            body.classList.remove("win");
+            body.classList.remove("lose");
+        }, 1000);
+
+    }, 1200);
+}
+
+/* 🎊 confettis */
+function confetti() {
+    for (let i = 0; i < 30; i++) {
+        let conf = document.createElement("div");
+        conf.className = "confetti";
+        conf.style.left = Math.random() * 100 + "vw";
+        conf.style.background = `hsl(${Math.random()*360},100%,50%)`;
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), 2000);
+    }
+}
+
+/* 🌌 particules */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let souris = { x: null, y: null };
+
+window.addEventListener("mousemove", (e) => {
+    souris.x = e.x;
+    souris.y = e.y;
+});
+
+class Particule {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2;
+        this.vx = (Math.random() - 0.5);
+        this.vy = (Math.random() - 0.5);
+    }
+
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        let dx = souris.x - this.x;
+        let dy = souris.y - this.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist < 120) {
+            this.x -= dx / 25;
+            this.y -= dy / 25;
+        }
+    }
+
+    draw() {
+        ctx.fillStyle = "white";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        ctx.fill();
+    }
+}
+
+let particules = [];
+for (let i = 0; i < 120; i++) {
+    particules.push(new Particule());
+}
+
+function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particules.forEach(p => {
+        p.update();
+        p.draw();
+    });
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>

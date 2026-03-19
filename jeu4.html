@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Devine le nombre</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:black;
+  color:white;
+  text-align:center;
+  overflow:hidden;
+}
+
+/* fond étoiles */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
+}
+
+/* bouton retour */
+.back{
+  position:absolute;
+  top:10px;
+  left:10px;
+  padding:10px 15px;
+  background:white;
+  color:black;
+  border-radius:10px;
+  text-decoration:none;
+}
+
+/* titre */
+h1{
+  margin-top:60px;
+  color:#00ffff;
+  text-shadow:0 0 10px #00ffff;
+}
+
+/* boîte */
+.box{
+  margin-top:40px;
+}
+
+/* input */
+input{
+  padding:12px;
+  font-size:20px;
+  width:120px;
+  text-align:center;
+  border-radius:10px;
+  border:none;
+}
+
+/* bouton */
+button{
+  padding:12px 20px;
+  font-size:18px;
+  margin:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#00ffff;
+}
+
+/* message */
+#message{
+  font-size:24px;
+  margin-top:20px;
+}
+
+/* victoire */
+.win{
+  color:#00ff00;
+  animation: flash 0.3s infinite alternate;
+}
+
+@keyframes flash{
+  from{opacity:1;}
+  to{opacity:0.4;}
+}
+
+/* défaite */
+.lose{
+  color:red;
+}
+
+/* compteur */
+#score{
+  margin-top:10px;
+  font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<a href="selection.html" class="back">⬅ Retour</a>
+
+<h1>🎯 Devine le nombre</h1>
+
+<div class="box">
+  <p>Trouve un nombre entre <b>1 et 100</b></p>
+
+  <input type="number" id="guess" placeholder="?">
+  <button onclick="verifier()">Valider</button>
+
+  <div id="message"></div>
+  <div id="score"></div>
+
+  <button onclick="resetGame()">Rejouer</button>
+</div>
+
+<script>
+let nombre = Math.floor(Math.random()*100)+1;
+let essais = 0;
+
+/* 🎮 logique */
+function verifier(){
+  let val = Number(document.getElementById("guess").value);
+  let msg = document.getElementById("message");
+  let score = document.getElementById("score");
+
+  if(!val){
+    msg.textContent = "Entre un nombre !";
+    return;
+  }
+
+  essais++;
+
+  if(val === nombre){
+    msg.innerHTML = "🎉 GAGNÉ !";
+    msg.className = "win";
+  }
+  else if(val < nombre){
+    msg.textContent = "⬆️ Plus grand";
+    msg.className = "";
+  }
+  else{
+    msg.textContent = "⬇️ Plus petit";
+    msg.className = "";
+  }
+
+  score.textContent = "Essais : " + essais;
+  document.getElementById("guess").value = "";
+}
+
+function resetGame(){
+  nombre = Math.floor(Math.random()*100)+1;
+  essais = 0;
+  document.getElementById("message").textContent = "";
+  document.getElementById("score").textContent = "";
+}
+
+/* 🌌 fond étoiles */
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let stars=[];
+for(let i=0;i<150;i++){
+  stars.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    size:Math.random()*2,
+    speed:Math.random()*0.5+0.2
+  });
+}
+
+function animate(){
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  stars.forEach(s=>{
+    s.y+=s.speed;
+    if(s.y>canvas.height){
+      s.y=0;
+      s.x=Math.random()*canvas.width;
+    }
+    ctx.fillStyle="white";
+    ctx.fillRect(s.x,s.y,s.size,s.size);
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
