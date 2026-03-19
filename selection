@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Game Storm - Sélection</title>
+<p> choissisez parmi les 7 jeux </p>
+
+<style>
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
+  font-family:Arial;
+  background:black;
+  color:white;
+  text-align:center;
+  overflow-y:auto;
+  touch-action: pan-y;
+}
+
+/* 🔙 BOUTON RETOUR */
+.backBtn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  padding:10px 20px;
+  background:#00ffff;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  box-shadow:0 0 10px #00ffff;
+  transition:0.3s;
+}
+
+.backBtn:hover{
+  transform:scale(1.1);
+  box-shadow:0 0 20px #00ffff;
+}
+
+/* TITRE NEON */
+.title {
+  font-size:50px;
+  color:#00ffff;
+  text-shadow:0 0 10px #00ffff, 0 0 20px #00ffff;
+  animation: glow 2s infinite alternate;
+  margin-top:50px;
+}
+
+@keyframes glow {
+  from {text-shadow:0 0 10px #00ffff;}
+  to {text-shadow:0 0 30px #00ffff, 0 0 60px #00ffff;}
+}
+
+/* CANVAS */
+canvas {
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
+  pointer-events:none;
+}
+
+/* CARTES */
+.games {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:40px;
+  margin-top:40px;
+  padding-bottom:100px;
+}
+
+.gameCard {
+  display:flex;
+  align-items:center;
+  gap:30px;
+  background:#111;
+  padding:20px;
+  border-radius:15px;
+  width:700px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.gameCard:hover {
+  transform:scale(1.05);
+  box-shadow:0 0 20px #00ffff;
+}
+
+.gameImg {
+  width:200px;
+  border-radius:10px;
+}
+
+.gameText {
+  max-width:400px;
+  text-align:left;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🔙 BOUTON RETOUR -->
+<button class="backBtn" onclick="window.location.href='index.html'">
+← Retour
+</button>
+
+<canvas id="stars"></canvas>
+
+<h1 class="title">SÉLECTION DES JEUX</h1>
+
+<div class="games">
+
+<div class="gameCard" onclick="window.location.href='jeu1.html'">
+<img src="c:\Users\Stagiaire\Pictures\Annotation 2026-03-16 104833.png" class="gameImg">
+<div class="gameText">
+<h2>Shooter</h2>
+<p>Combat spatial, esquive et survie.</p>
+</div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu2.html'">
+<img src="c:\Users\Stagiaire\Pictures\Capture d’écran 2026-03-16 134901.png" class="gameImg">
+<div class="gameText">
+<h2>Snake</h2>
+<p>Mange et grandis sans toucher les murs en utilisant les fleche de ton clavier ou les fleche mise a lecran </p>
+</div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu3.html'">
+<img src="c:\Users\Stagiaire\Pictures\Capture d’écran 2026-03-16 155609.png" class="gameImg">
+<div class="gameText">
+<h2>Chifoumi</h2>
+<p>Bats l’ordinateur et fais le meilleur score.</p>
+</div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu4.html'">
+<img src="c:\Users\Stagiaire\Downloads\ChatGPT Image 17 mars 2026, 09_47_21.png" class="gameImg">
+<div class="gameText">
+<h2>Devine le nombre</h2>
+<p>Essaie de trouver le nombre secret entre 1 et 100 avec des indices.</p>
+</div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu5.html'">
+
+  <img src="c:\Users\Stagiaire\Downloads\ChatGPT Image 17 mars 2026, 11_50_34.png" class="gameImg">
+  <div class="gameText">
+    <h2> dodge game </h2>
+    <p> evite les obstacle et bats ton record oublie pas de jouer avec zqsd </p>
+  </div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu6.html'">
+
+  <img src="c:\Users\Stagiaire\Downloads\ChatGPT Image 17 mars 2026, 12_17_49.png" class="gameImg">
+  <div class="gameText">
+    <h2> escape run </h2>
+    <p> saute au dessus des mini arbre </p>
+  </div>
+</div>
+
+<div class="gameCard" onclick="window.location.href='jeu7.html'">
+
+  <img src="c:\Users\Stagiaire\Downloads\thumb2x.jpg" class="gameImg">
+  <div class="gameText">
+    <h2> black jack </h2>
+    <p> 🎴 **Blackjack Casino** est un jeu de cartes rapide et stratégique où tu affrontes le croupier. Le but est simple : atteindre un score proche de 21 sans le dépasser. Tu peux tirer des cartes ou t’arrêter au bon moment pour battre le croupier. Gère ton argent, prends des risques, et tente de gagner un maximum de jetons dans une ambiance casino stylée. 💰
+</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let stars = [];
+for(let i=0;i<200;i++){
+  stars.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    size:Math.random()*2,
+    speed:Math.random()*0.5+0.2
+  });
+}
+
+function animate(){
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  
+  stars.forEach(star=>{
+    star.y += star.speed;
+    if(star.y > canvas.height){
+      star.y = 0;
+      star.x = Math.random()*canvas.width;
+    }
+    ctx.fillStyle="white";
+    ctx.fillRect(star.x,star.y,star.size,star.size);
+  });
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+
+
+</body>
+</html>
