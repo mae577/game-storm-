@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Game Storm</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:black;
+  color:white;
+  text-align:center;
+  overflow:hidden;
+}
+
+/* 🌌 canvas */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
+  z-index:-1;
+}
+
+/* 🔝 NAVBAR */
+.navbar{
+  position:fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#111;
+  padding:10px 20px;
+  box-shadow:0 0 10px #00ffff;
+}
+
+.logo{
+  color:#00ffff;
+  font-size:20px;
+}
+
+.nav-buttons button{
+  margin-left:10px;
+  padding:8px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#00ffff;
+  transition:0.2s;
+}
+
+.nav-buttons button:hover{
+  transform:scale(1.1);
+}
+
+/* titre */
+.title{
+  margin-top:120px;
+  font-size:70px;
+  color:#00ffff;
+  text-shadow:0 0 20px #00ffff;
+}
+
+/* bouton play */
+.play{
+  padding:20px 40px;
+  font-size:25px;
+  margin-top:30px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  background:#00ffff;
+  transition:0.3s;
+}
+
+.play:hover{
+  transform:scale(1.1);
+  box-shadow:0 0 20px #00ffff;
+}
+
+/* popup */
+.popup{
+  display:none;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%) scale(0.8);
+  background:#111;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 0 20px #00ffff;
+  transition:0.3s;
+}
+
+.popup.show{
+  display:block;
+  transform:translate(-50%,-50%) scale(1);
+}
+
+input{
+  padding:10px;
+  margin:5px;
+  border-radius:10px;
+  border:none;
+}
+
+/* message */
+.msg{
+  margin-top:10px;
+  font-size:14px;
+}
+
+/* fermer */
+.close{
+  background:red;
+  color:white;
+  margin-top:10px;
+}
+
+/* notification */
+.toast{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#111;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 0 15px #00ffff;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="navbar">
+  <div class="logo">GAME STORM</div>
+  <div class="nav-buttons" id="nav"></div>
+</div>
+
+<h1 class="title">GAME STORM</h1>
+<button class="play" id="playBtn">PLAY</button>
+
+<!-- LOGIN -->
+<div id="login" class="popup">
+<h2>Connexion</h2>
+<input type="text" id="loginUser" placeholder="Pseudo"><br>
+<input type="password" id="loginPass" placeholder="Mot de passe"><br>
+<button onclick="login()">Connexion</button>
+<div id="loginMsg" class="msg"></div>
+<button class="close" onclick="closeAll()">Fermer</button>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="popup">
+<h2>Créer un compte</h2>
+<input type="text" id="regUser" placeholder="Pseudo"><br>
+<input type="password" id="regPass" placeholder="Mot de passe"><br>
+<button onclick="register()">Créer</button>
+<div id="registerMsg" class="msg"></div>
+<button class="close" onclick="closeAll()">Fermer</button>
+</div>
+
+<!-- notification -->
+<div id="toast" class="toast"></div>
+
+<script>
+/* ⭐ PARTICULES INTERACTIVES */
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+
+let mouse = {x:0,y:0};
+
+window.addEventListener("mousemove", e=>{
+  mouse.x = e.x;
+  mouse.y = e.y;
+});
+
+window.addEventListener("touchmove", e=>{
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+});
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+let stars=[];
+for(let i=0;i<120;i++){
+  stars.push({
+    x:Math.random()*canvas.width,
+    y:Math.random()*canvas.height,
+    size:Math.random()*2
+  });
+}
+
+function animate(){
+  ctx.fillStyle="black";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  stars.forEach(s=>{
+    let dx = mouse.x - s.x;
+    let dy = mouse.y - s.y;
+    let dist = Math.sqrt(dx*dx+dy*dy);
+
+    if(dist < 120){
+      s.x -= dx * 0.02;
+      s.y -= dy * 0.02;
+    }
+
+    ctx.fillStyle="white";
+    ctx.fillRect(s.x,s.y,s.size,s.size);
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* UTILISATEUR */
+let currentUser = localStorage.getItem("currentUser");
+
+/* NAVBAR */
+function updateNav(){
+  const nav = document.getElementById("nav");
+
+  if(currentUser){
+    nav.innerHTML = `
+      👤 ${currentUser}
+      <button onclick="logout()">Déconnexion</button>
+    `;
+  }else{
+    nav.innerHTML = `
+      <button onclick="openLogin()">Connexion</button>
+      <button onclick="openRegister()">Créer compte</button>
+      <button onclick="showToast('📞 dev@gamestorm.com')">Contact</button>
+    `;
+  }
+}
+updateNav();
+
+/* POPUP */
+function openLogin(){
+  document.getElementById("login").classList.add("show");
+}
+function openRegister(){
+  document.getElementById("register").classList.add("show");
+}
+function closeAll(){
+  document.querySelectorAll(".popup").forEach(p=>p.classList.remove("show"));
+}
+
+/* REGISTER */
+function register(){
+  let user = regUser.value;
+  let pass = regPass.value;
+  let msg = registerMsg;
+
+  if(!user || !pass){
+    msg.textContent="⚠️ Remplis tout";
+    msg.style.color="orange";
+    return;
+  }
+
+  if(localStorage.getItem(user)){
+    msg.textContent="❌ Déjà existant";
+    msg.style.color="red";
+    return;
+  }
+
+  localStorage.setItem(user, pass);
+
+  msg.textContent="✅ Compte créé";
+  msg.style.color="#0f0";
+
+  setTimeout(closeAll,1000);
+}
+
+/* LOGIN */
+function login(){
+  let user = loginUser.value;
+  let pass = loginPass.value;
+  let msg = loginMsg;
+
+  if(localStorage.getItem(user)===pass){
+    currentUser=user;
+    localStorage.setItem("currentUser",user);
+
+    msg.textContent="✅ Connecté";
+    msg.style.color="#0f0";
+
+    setTimeout(()=>{
+      closeAll();
+      updateNav();
+      showToast("Bienvenue "+user);
+    },1000);
+
+  }else{
+    msg.textContent="❌ Erreur";
+    msg.style.color="red";
+  }
+}
+
+/* LOGOUT */
+function logout(){
+  localStorage.removeItem("currentUser");
+  location.reload();
+}
+
+/* PLAY */
+playBtn.onclick = ()=>{
+  if(!currentUser){
+    openLogin();
+  }else{
+    window.location.href="selection.html";
+  }
+};
+
+/* TOAST */
+function showToast(text){
+  let t = document.getElementById("toast");
+  t.textContent=text;
+  t.style.display="block";
+
+  setTimeout(()=>t.style.display="none",2000);
+}
+
+
+</script>
+
+</body>
+</html>
+
+
